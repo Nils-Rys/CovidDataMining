@@ -294,20 +294,20 @@ def covidCountyData():
 
     states = states[~states['NAME'].isin(['Alaska','Hawaii','Peurto Rico'])]
 
-    bound = states.boundary.plot(linewidth=0.05)
+    bound = states.boundary.plot(linewidth=0.005)
     bound.set_xlim(-130, -60)
     bound.set_ylim(20, 50)
     # infection percentage graphing
-    states.plot(ax=bound, column='cumulative_percentage', legend=True, cmap='Reds')
-    plt.axis('off')
-    plt.show()
-    plt.savefig('infectedCountyPerc.png', transparent=True)
-
-
-    # states.plot(ax=bound, column='dead_percentage', legend=True, cmap='Blues')
+    # states.plot(ax=bound, column='cumulative_percentage', legend=True,vmax =1, cmap='Reds')
     # plt.axis('off')
     # plt.show()
-    # plt.savefig('deadCountyPerc.png', transparent=True)
+    # plt.savefig('infectedCountyPerc.png', transparent=True)
+
+
+    states.plot(ax=bound, column='dead_percentage', legend=True, cmap='Blues')
+    plt.axis('off')
+    plt.show()
+    plt.savefig('deadCountyPerc.png', transparent=True)
 
     # states = 
     # states.head()
