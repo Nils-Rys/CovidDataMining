@@ -1,14 +1,188 @@
 
 import pandas
 import matplotlib.pyplot as plt
+from scipy import stats
+from ChiMerge import *
 import geopandas
+import seaborn as sns
 
 def main():
     # cleanData()
-    covidCountyData()
+    # covidCountyData()
     # covidData()
     # houseData()
     # houseCountyData()
+    dataAnalysis()
+
+def dataAnalysis():
+    covidCounty = pandas.read_csv('countyUS.csv')
+    houseCounty = pandas.read_csv('countyBias.csv')
+    megaData = pandas.merge(
+        left=covidCounty,
+        right=houseCounty,
+        left_on=['location_key', 'county'],
+        right_on=['state_po', 'county_fips'],
+        how='left'
+    )
+    megaData = megaData.drop(columns="Unnamed: 0")
+    megaData = megaData[megaData['cumulative_percentage'] != 3.843137254901961]
+    print(megaData['cumulative_percentage'].max())
+
+    # print(megaData.columns)
+
+    megaData['vote_classification'] = ''
+    megaData['infec_classification'] = ''
+    megaData['death_classification'] = ''
+    
+    megaData['vote_classification'].mask(megaData['votePercentage'] < -0.75, "-1 | -0.75", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.75) & (megaData["votePercentage"].astype(float) < -0.5),"-0.75 | -0.5", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.5) & (megaData["votePercentage"].astype(float) < -0.3), "-0.5 | -0.3", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.3) & (megaData["votePercentage"].astype(float) < -0.2), "-0.3 | -0.2", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.2) & (megaData["votePercentage"].astype(float) < -0.1), "-0.2 | -0.1", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.1) & (megaData["votePercentage"].astype(float) < -0.05), "-0.1 | -0.05", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= -0.05) & (megaData["votePercentage"].astype(float) < 0.05), "-0.05 | 0.05", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= 0.05) & (megaData["votePercentage"].astype(float) < 0.1), "0.05 | 0.1", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= 0.1) & (megaData["votePercentage"].astype(float) < 0.2), "0.1 | 0.2", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= 0.2) & (megaData["votePercentage"].astype(float) < 0.3), "0.2 | 0.3", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= 0.3) & (megaData["votePercentage"].astype(float) < 0.5), "0.3 | 0.5", inplace=True)
+    megaData['vote_classification'].mask((megaData["votePercentage"].astype(float) >= 0.5) & (megaData["votePercentage"].astype(float) < 0.75), "0.5 | 0.75", inplace=True)
+    megaData['vote_classification'].mask(megaData["votePercentage"].astype(float) >= 0.75, "0.75 | 1", inplace=True)
+
+
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.0121951219512195) & (megaData["cumulative_percentage"].astype(float) <= 0.1705864840726406),"0.0121951219512195, 0.1705864840726406", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.1707016364043936) & (megaData["cumulative_percentage"].astype(float) <= 0.1709621993127147), "0.1707016364043936, 0.1709621993127147", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.1711065273283606) & (megaData["cumulative_percentage"].astype(float) <= 0.2074110263444699), "0.1711065273283606, 0.2074110263444699", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.207440866482102) & (megaData["cumulative_percentage"].astype(float) <= 0.2075535896563456), "0.207440866482102, 0.2075535896563456", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2075841927534909) & (megaData["cumulative_percentage"].astype(float) <= 0.2395193940185451), "0.2075841927534909, 0.2395193940185451", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2396599264705882) & (megaData["cumulative_percentage"].astype(float) <= 0.2396930040342418), "0.2396599264705882, 0.2396930040342418", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2397075798383993) & (megaData["cumulative_percentage"].astype(float) <= 0.2557263411693791), "0.2397075798383993, 0.2557263411693791", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.255734852080367) & (megaData["cumulative_percentage"].astype(float) <= 0.2558938184518284), "0.255734852080367, 0.2558938184518284", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2558942200184726) & (megaData["cumulative_percentage"].astype(float) <= 0.2687941086222767), "0.2558942200184726, 0.2687941086222767", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2688036345280161) & (megaData["cumulative_percentage"].astype(float) <= 0.2688271495144249), "0.2688036345280161, 0.2688271495144249", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2688500549920567) & (megaData["cumulative_percentage"].astype(float) <= 0.2862528799832437), "0.2688500549920567, 0.2862528799832437", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2863283187303687) & (megaData["cumulative_percentage"].astype(float) <= 0.2864547339322736), "0.2863283187303687, 0.2864547339322736", inplace=True)
+    megaData['infec_classification'].mask((megaData["cumulative_percentage"].astype(float) >= 0.2864564987671715) & (megaData["cumulative_percentage"].astype(float) <= 0.8488490758589409), "0.2864564987671715, 0.8488490758589409", inplace=True)
+
+
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0) & (megaData["dead_percentage"].astype(float) <= 0.0008773448773448),"0.0, 0.0008773448773448", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0008873114463176) & (megaData["dead_percentage"].astype(float) <= 0.0009784735812133), "0.0008873114463176, 0.0009784735812133", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0009823182711198) & (megaData["dead_percentage"].astype(float) <= 0.0009823182711198), "0.0009823182711198, 0.0009823182711198", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0009851269852711) & (megaData["dead_percentage"].astype(float) <= 0.0019893371528606), "0.0009851269852711, 0.0019893371528606", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0019914368216668) & (megaData["dead_percentage"].astype(float) <= 0.0019925280199252), "0.0019914368216668, 0.0019925280199252", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0019941054268831) & (megaData["dead_percentage"].astype(float) <= 0.002333346743372), "0.0019941054268831, 0.002333346743372", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0023341113704568) & (megaData["dead_percentage"].astype(float) <= 0.0023344651952461), "0.0023341113704568, 0.0023344651952461", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0023374021444737) & (megaData["dead_percentage"].astype(float) <= 0.002909796314258), "0.0023374021444737, 0.002909796314258", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0029110664767247) & (megaData["dead_percentage"].astype(float) <= 0.0029118136439267), "0.0029110664767247, 0.0029118136439267", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0029146268994595) & (megaData["dead_percentage"].astype(float) <= 0.0034330877983909), "0.0029146268994595, 0.0034330877983909", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0034330920217926) & (megaData["dead_percentage"].astype(float) <= 0.0034331489605187), "0.0034330920217926, 0.0034331489605187", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.0034364261168384) & (megaData["dead_percentage"].astype(float) <= 0.0049032163635698), "0.0034364261168384, 0.0049032163635698", inplace=True)
+    megaData['death_classification'].mask((megaData["dead_percentage"].astype(float) >= 0.004904146232724) & (megaData["dead_percentage"].astype(float) <= 0.0196078431372549), "0.004904146232724, 0.0196078431372549", inplace=True)
+
+    megaData = megaData[megaData['votePercentage'].notna()]
+    megaData = megaData[megaData['cumulative_percentage'].notna()]
+    print(megaData.loc[megaData['infec_classification'] == ''])
+    # -1 -0.75
+    # -0.75 -0.5
+    # -0.5 -0.3
+    # -0.3 -0.2
+    # -0.2 -0.1
+    # -0.1 -0.05
+    # -0.05 0.05
+    megaData['vote_classification'] = pd.Categorical(megaData['vote_classification'], ["-1 | -0.75", "-0.75 | -0.5", "-0.5 | -0.3", "-0.3 | -0.2", "-0.2 | -0.1", "-0.1 | -0.05", "-0.05 | 0.05", "0.05 | 0.1", "0.1 | 0.2", "0.2 | 0.3", "0.3 | 0.5", "0.5 | 0.75", "0.75 | 1"])
+
+
+    infectionCross = pandas.crosstab(megaData['infec_classification'], megaData['vote_classification'], normalize='columns')
+    plt.figure(figsize=(13,13))
+    ax = sns.heatmap(infectionCross, annot=True)
+    ax.figure.tight_layout()
+
+    fig = ax.get_figure()
+    fig.savefig("infecHeatmap.png", transparent=True) 
+    
+    infectionTotalCross = pandas.crosstab(megaData['infec_classification'], megaData['vote_classification'], normalize='all')
+    plt.figure(figsize=(13,13))
+    ax = sns.heatmap(infectionTotalCross, annot=True)
+    ax.figure.tight_layout()
+
+    fig = ax.get_figure()
+    fig.savefig("infecSupportHeatmap.png", transparent=True) 
+
+    deathCross = pandas.crosstab(megaData['death_classification'], megaData['vote_classification'], normalize='columns')
+    plt.figure(figsize=(13,13))
+    ax = sns.heatmap(deathCross, annot=True)
+    ax.figure.tight_layout()
+
+    fig = ax.get_figure()
+    fig.savefig("deathHeatmap.png", transparent=True) 
+    
+    deathTotalCross = pandas.crosstab(megaData['death_classification'], megaData['vote_classification'], normalize='all')
+    plt.figure(figsize=(13,13))
+    ax = sns.heatmap(deathTotalCross, annot=True)
+    ax.figure.tight_layout()
+
+    fig = ax.get_figure()
+    fig.savefig("deathSupportHeatmap.png", transparent=True) 
+
+
+    # print(infectionTotalCross)
+
+    # supportInfec = infectionTotalCross
+    # xcount = 0
+    # ycount = 0
+    # temp = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+    # xlen = len(supportInfec)
+    # for x in supportInfec:
+    #     temp[xcount] = supportInfec[x]
+    #     ycount=0
+    #     print(x)
+    #     for y in supportInfec[x]:
+    #         ylen = len(supportInfec[x])
+    #         print(supportInfec[x][ycount].astype(float) / supportInfec["All"][ylen-1].astype(float))
+    #         temp[xcount][ycount]= supportInfec[x][ycount].astype(float) / supportInfec["All"][ylen-1].astype(float)
+    #         ycount+=1
+    #     xcount+=1 
+
+    # print(temp)
+
+
+
+    # infecContingency = pandas.crosstab(megaData['cumulative_percentage'], megaData['vote_classification'])
+    # infecContingency.to_csv("infecContingency.csv")
+    # temp = pandas.read_csv("infecContingency.csv")
+    # start(temp)
+
+    # deadContingency = pandas.crosstab(megaData['dead_percentage'], megaData['vote_classification'])
+    # deadContingency.to_csv("deadContingency.csv")
+    # temp = pandas.read_csv("deadContingency.csv")
+    # start(temp)
+
+
+    # infecVoteContingency = pandas.crosstab(megaData['votePercentage'], megaData['cumulative_percentage'])
+    # deadContingency = pandas.crosstab(megaData['dead_percentage'], megaData['votePercentage'])
+    # deadVoteContingency = pandas.crosstab(megaData['votePercentage'], megaData['dead_percentage'])
+    # print(infecContingency)
+
+    # infecContingency.plot()
+    # plt.show()
+
+
+    # print(stats.chi2_contingency(infecContingency))
+    # stats.chi2_contingency(deadContingency)
+
+
+    # fig = plt.figure()
+    # ax = plt.subplot(111)
+    # # megaData.plot.scatter(x='votePercentage', ax=ax, y='cumulative_percentage', c='Blue')
+    # megaData.plot.scatter(x='votePercentage', ax=ax, y='dead_percentage', c='Blue')
+    # # ax.set_ylim(0,0.5)
+    # # plt.savefig('infectedScatter.png', transparent=True)
+    # plt.savefig('deadScatter.png', transparent=True)
+
+    # plt.show()
+
+
+    
+
 
 def cleanData():
     # county pop data from https://www.census.gov/data/tables/time-series/demo/popest/2020s-counties-total.html#v2022
@@ -150,7 +324,7 @@ def houseCountyData():
 
     states.plot(ax=bound, column='votePercentage', legend=True, vmin = -1, vmax =1, cmap='RdBu_r')
     plt.axis('off')
-    plt.show()
+    # plt.show()
     plt.savefig('countyBias.png', transparent=True)
 
     
